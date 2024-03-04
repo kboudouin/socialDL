@@ -1,0 +1,7 @@
+fastapi
+itsdangerous
+slowapi
+python-dotenv
+yt-dlp
+pyOpenSSL
+certifi
