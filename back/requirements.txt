@@ -8,5 +8,4 @@ certifi
 starlette
 uvicorn
 gunicorn
-re
 uuid
