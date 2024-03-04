@@ -63,10 +63,9 @@ async function downloadVideo() {
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center lg:mx-8 my-4">
+  <div class="flex flex-col items-center justify-center lg:mx-8 my-6">
     <div class="flex flex-col items-center justify-center">
       <h1 class="text-5xl font-bold">Video Downloader</h1>
-      <p class="text-2xl font-bold">Youtube, Tiktok, Instagram Reels, </p>
     </div>
   </div>
   <div class="flex items-center justify-center lg:mx-12">
