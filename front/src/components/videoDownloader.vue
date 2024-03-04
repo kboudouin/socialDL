@@ -2,13 +2,13 @@
   <div class="flex flex-col items-center justify-center">
     <h1 class="font-bold text-4xl lg:mx-12" v-if="data.title  != ''">{{ data.title }}</h1>
     <p class="text-3xl" v-if="data.view_count  != ''">{{ formatNumber(data.view_count) }} views</p>
-    <h2 v-if="data.uploade  != ''">Uploaded by: {{ data.uploader }}</h2>
+    <h2 v-if="data.uploader  != ''">Uploaded by: {{ data.uploader }}</h2>
     <div class="my-2">
         <button @click="downloadVideoFile" class="btn btn-xl btn-primary">Download</button>
     </div>
-    <!-- <img v-if="data.thumbnail  != ''" :src="data.thumbnail" alt="Thumbnail"> -->
     <div class="lg:w-1/2 card shadow-xl">
-         <video class="" v-if="data.filepath  != ''" controls :src="data.filepath"></video>
+         <video class="" v-if="data.filepath  != '' && data.ext == 'mp4' " controls :src="data.filepath"></video>
+         <audio v-if="data.filepath  != '' && data.ext != 'mp4'" controls :src="data.filepath"></audio>
     </div>
     <p v-if="data.like_count  != '' && data.like_count == '-1'  ">Likes: {{ formatNumber(data.like_count) }}</p>
     <p v-if="data.dislike_count  != ''">Dislikes: {{ formatNumber(data.dislike_count) }}</p>
@@ -30,13 +30,21 @@ const props = defineProps({
 
 const data = ref(props.data);
 
+const sanitizeFilename = (filename) => {
+  return filename.replace(/[/\\?%*:|"<>]/g, '_');
+};
+
+
 const downloadVideoFile = async () => {
+  if (!props.data.filepath) return;
   const response = await fetch(props.data.filepath);
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
+  const filename = sanitizeFilename(props.data.title+'_KRDBN' || 'KRBDN-DOWNLOAD');
+  const fileExtension = props.data.ext || 'mp4';
   const link = document.createElement('a');
   link.href = url;
-  link.download = '';
+  link.download = `${filename}.${fileExtension}`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

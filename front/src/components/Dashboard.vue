@@ -10,6 +10,8 @@ const token = ref('');
 const errorMessage = ref('');
 const loading = ref(false);
 const BASE_URL = 'http://api.krbdn.com'
+const selectedType = ref(localStorage.getItem('SelectedType') || 'mp4');
+const infoVisible = ref(true);
 
 onMounted(async () => {
   try {
@@ -23,14 +25,20 @@ onMounted(async () => {
   }
 });
 
+watch(selectedType, (newType) => {
+  localStorage.setItem('SelectedType', newType);
+});
+
 async function downloadVideo() {
   if (!videoUrl.value) {
     errorMessage.value = 'URL cannot be empty';
     return;
   }
+  infoVisible.value = false;
   loading.value = true;
   const token = localStorage.getItem('token');
   const formData = new FormData();
+  formData.append('format', selectedType.value);
   formData.append('url', videoUrl.value);
   try {
     const response = await axios.post(`${BASE_URL}/api/download-video`, formData, {
@@ -44,6 +52,7 @@ async function downloadVideo() {
     }
     loading.value = false;
   } catch (error) {
+    errorMessage.value = 'Oups! Sorry we could not download the video!';
     console.error(error);
     loading.value = false;
   }
@@ -62,16 +71,23 @@ async function downloadVideo() {
   </div>
   <div class="flex items-center justify-center lg:mx-12">
     <input v-model="videoUrl" type="text"  placeholder="Ex : https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="input input-bordered input-primary w-1/2" />
+    <select v-model="selectedType" class="select select-bordered select-primary font-bold">
+      <option disabled selected>Format</option>
+      <option>mp4</option>
+      <option>mp3</option>
+      <option>wav</option>
+      <option>flac</option>
+    </select>
     <button  @click="downloadVideo" class="btn btn-primary">Go!</button>
   </div>
   <div class="flex items-center justify-center mt-4">
    <p class="text-red-500">{{ errorMessage }}</p>
   </div>
-  <!-- <infoText v-if="!videoData" /> -->
-  <div v-if="loading" class="flex items-center justify-center mt-4">
-   <span class="loading loading-spinner loading-lg"></span>
+  <div v-if="loading" class="flex flex-col items-center justify-center mt-4">
+    <span class="loading loading-spinner loading-lg"></span>
+    <h2 class="text-lg font-bold">It might take a minute 😅</h2>
   </div>
-
+  <infoText v-if="!videoData && infoVisible" />
   <videoDownloader v-if="videoData && !loading" :data="videoData" />
 </template>
 

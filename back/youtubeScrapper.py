@@ -12,6 +12,8 @@ import os
 import yt_dlp as youtube_dl
 import ssl
 import certifi
+import re
+import uuid
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -48,6 +50,16 @@ def validate_token(auth: HTTPAuthorizationCredentials = Depends(auth_scheme)):
     except (SignatureExpired, BadSignature):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+def sanitize_title(filename):
+    """
+    Sanitizes a string to be safe for use as a filename.
+    Removes or replaces characters that are not allowed in filenames.
+    """
+    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
+    filename = re.sub(r'\s+', "_", filename) 
+    filename = re.sub(r'^\.+', "", filename) 
+    return filename[:255] 
+
 # FastAPI Endpoints
 @app.post("/api/generate-token")
 @limiter.limit("5/minute") 
@@ -56,26 +68,28 @@ async def generate_download_token(request: Request):
 
 @app.post("/api/download-video")
 @limiter.limit("5/minute")
-async def download_video(request: Request, url: str = Form(...), auth: HTTPAuthorizationCredentials = Depends(validate_token)):
+async def download_video(request: Request, url: str = Form(...), format: str = Form('mp4'), auth: HTTPAuthorizationCredentials = Depends(validate_token)):
     ssl_context = create_ssl_context()
+    unique_id = str(uuid.uuid4())
+    outtmpl = os.path.join(DOWNLOAD_DIRECTORY, f"{unique_id}.%(ext)s")
     ydl_opts = {
         'ssl_context': ssl_context,
-        'writethumbnail': True,
-        'outtmpl': os.path.join(DOWNLOAD_DIRECTORY, '%(id)s.%(ext)s'),
+        'outtmpl': outtmpl,
         'cookies': 'cookies.txt',
+        'format': 'bestaudio/best' if format in ['mp3', 'wav', 'flac'] else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
+        'postprocessors': [],
     }
+    if format in ['mp3', 'wav', 'flac']:
+        ydl_opts['postprocessors'].append({
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': format,
+            'preferredquality': '192',
+        })
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         result = ydl.extract_info(url)
-        video_id = result.get('id')
-        video_title = result.get('title')
-        file_ext = result.get('ext', 'mp4')
-        filepath = f"{DIRECTORY}{video_id}.{file_ext}"
-        thumbnail_path = None
-        for ext in ['jpg', 'png', 'webp']:
-            potential_path = f"{DOWNLOAD_DIRECTORY}{video_id}.{ext}"
-            if os.path.isfile(potential_path):
-                thumbnail_path = potential_path
-                break
+        video_title = sanitize_title(result.get('title'))
+        file_ext = format
+        filepath = f"{DIRECTORY}{unique_id}.{file_ext}"
         duration = result.get('duration', '')
         uploader = result.get('uploader', '')
         uploader_url = result.get('uploader_url', '')
@@ -89,7 +103,6 @@ async def download_video(request: Request, url: str = Form(...), auth: HTTPAutho
         "message": "Download OK",
         "title": video_title, 
         "filepath": filepath,
-        "thumbnail": thumbnail_path,
         "duration": duration,
         "uploader": uploader,
         "uploader_url": uploader_url,
@@ -98,5 +111,6 @@ async def download_video(request: Request, url: str = Form(...), auth: HTTPAutho
         "channel_id": channel_id,
         "view_count": view_count,
         "like_count": like_count,
-        "dislike_count": dislike_count
+        "dislike_count": dislike_count,
+        "ext": file_ext,
     }
