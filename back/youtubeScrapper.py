@@ -18,7 +18,7 @@ load_dotenv()
 # Configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 DOWNLOAD_DIRECTORY = "videos"
-DIRECTORY = "http://krbdn.com/content/videos/"
+DIRECTORY = "http://cdn.krbdn.com/content/videos/"
 TOKEN_VALIDITY = 600
     
 app = FastAPI()
