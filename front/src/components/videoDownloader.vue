@@ -8,8 +8,8 @@
     </div>
     <div class="lg:w-1/2 card shadow-xl">
          <video class="" v-if="data.filepath  != '' && data.ext == 'mp4' " controls :src="data.filepath"></video>
-         <audio v-if="data.filepath  != '' && data.ext != 'mp4'" controls :src="data.filepath"></audio>
     </div>
+    <audio v-if="data.filepath  != '' && data.ext != 'mp4'" controls :src="data.filepath"></audio>
     <p v-if="data.like_count  != '' && data.like_count == '-1'  ">Likes: {{ formatNumber(data.like_count) }}</p>
     <p v-if="data.dislike_count  != ''">Dislikes: {{ formatNumber(data.dislike_count) }}</p>
     <p v-if="data.channel_id  != ''">Channel ID: {{ data.channel_id }}</p>
