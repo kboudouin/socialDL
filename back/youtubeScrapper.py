@@ -62,6 +62,7 @@ async def download_video(request: Request, url: str = Form(...), auth: HTTPAutho
         'ssl_context': ssl_context,
         'writethumbnail': True,
         'outtmpl': os.path.join(DOWNLOAD_DIRECTORY, '%(id)s.%(ext)s'),
+        'cookies': 'cookies.txt',
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         result = ydl.extract_info(url)
