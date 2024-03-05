@@ -20,7 +20,7 @@ load_dotenv()
 # Configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 DOWNLOAD_DIRECTORY = "videos"
-DIRECTORY = "http://cdn.krbdn.com/content/videos/"
+DIRECTORY = "https://cdn.krbdn.com/content/videos/"
 TOKEN_VALIDITY = 600
     
 app = FastAPI()
@@ -72,10 +72,12 @@ async def download_video(request: Request, url: str = Form(...), format: str = F
     ssl_context = create_ssl_context()
     unique_id = str(uuid.uuid4())
     outtmpl = os.path.join(DOWNLOAD_DIRECTORY, f"{unique_id}.%(ext)s")
+    cookies_file = 'cookies.txt'
+
     ydl_opts = {
         'ssl_context': ssl_context,
         'outtmpl': outtmpl,
-        'cookies': 'cookies.txt',
+        'cookies': cookies_file,
         'format': 'bestaudio/best' if format in ['mp3', 'wav', 'flac'] else 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
         'postprocessors': [],
     }
