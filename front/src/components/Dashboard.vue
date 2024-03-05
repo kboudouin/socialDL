@@ -9,7 +9,7 @@ const videoData = ref(null);
 const token = ref('');
 const errorMessage = ref('');
 const loading = ref(false);
-const BASE_URL = 'http://api.krbdn.com'
+const BASE_URL = 'https://api.krbdn.com'
 const selectedType = ref(localStorage.getItem('SelectedType') || 'mp4');
 const infoVisible = ref(true);
 

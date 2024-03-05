@@ -14,8 +14,12 @@ import ssl
 import certifi
 import re
 import uuid
+import secrets
 from dotenv import load_dotenv
 load_dotenv()
+
+def generate_secret_key():
+    return secrets.token_hex(32)
 
 # Configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -64,6 +68,7 @@ def sanitize_title(filename):
 @app.post("/api/generate-token")
 @limiter.limit("5/minute") 
 async def generate_download_token(request: Request):
+    print(generate_secret_key())
     return {"token": generate_token()}
 
 @app.post("/api/download-video")
